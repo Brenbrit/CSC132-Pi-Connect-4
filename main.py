@@ -1,6 +1,5 @@
 import cv2 as cv
 import matplotlib as plt
-import matplotlib.pyplot as pyplot
 import numpy as np
 
 VIDEO_SOURCE = "/dev/video1"
