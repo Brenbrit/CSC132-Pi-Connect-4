@@ -1,6 +1,7 @@
 import cv2 as cv
 import matplotlib as plt
 import numpy as np
+from pynput import mouse
 
 VIDEO_SOURCE = "/dev/video1"
 WINDOW_NAME = "CV Test"
