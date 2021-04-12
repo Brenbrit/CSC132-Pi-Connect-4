@@ -4,7 +4,7 @@ import numpy as np
 from pynput import mouse
 
 VIDEO_SOURCE = "/dev/video1"
-WINDOW_NAME = "CV Test"
+WINDOW_NAME = "PA3"
 
 ASSETS_DIR = "assets/"
 LEFT_ARROW = ASSETS_DIR + "left-arrow.png"
@@ -13,12 +13,8 @@ UP_ARROW = ASSETS_DIR + "up-arrow.png"
 DOWN_ARROW = ASSETS_DIR + "down-arrow.png"
 
 # function to capture mouse buttons
-def capture_event(event, x, y, flags, params):
-
-    # event is mouse click
-    # x, y are location of left mouse click
-    if event == cv.EVENT_LBUTTONDBLCLK:
-        print("Mouse down at ({},{})".format(x, y))
+def on_click(x, y, button, pressed):
+    print("Mouse was {} at {}".format("pressed" if pressed else "released", (x,y)))
 
 # function to overlay images of different sizes
 # useful for buttons on the display
@@ -73,6 +69,11 @@ def overlay_image(background, overlay, x, y):
 print("starting capture... ", end='')
 cap = cv.VideoCapture(VIDEO_SOURCE)
 cv.namedWindow(WINDOW_NAME)
+print("done!")
+
+print("Listening to mouse... ", end='')
+listener = mouse.Listener(on_click=on_click)
+listener.start()
 print("done!")
 
 print("Loading buttons... ", end='')
