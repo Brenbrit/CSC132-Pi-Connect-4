@@ -1,88 +1,24 @@
 import cv2 as cv
 import matplotlib as plt
 import numpy as np
-from pynput import mouse
 
 VIDEO_SOURCE = "/dev/video1"
-WINDOW_NAME = "PA3"
-
-ASSETS_DIR = "assets/"
-LEFT_ARROW = ASSETS_DIR + "left-arrow.png"
-RIGHT_ARROW = ASSETS_DIR + "right-arrow.png"
-UP_ARROW = ASSETS_DIR + "up-arrow.png"
-DOWN_ARROW = ASSETS_DIR + "down-arrow.png"
-
-# function to capture mouse buttons
-def on_click(x, y, button, pressed):
-    print("Mouse was {} at {}".format("pressed" if pressed else "released", (x,y)))
-
-# function to overlay images of different sizes
-# useful for buttons on the display
-# This code is mostly taken from Christian Garcia's
-# answer on StackOverflow, huge thanks to him!
-# https://stackoverflow.com/a/54058766
-def overlay_image(background, overlay, x, y):
-
-    # get data about background image
-    background_width = background.shape[1]
-    background_height = background.shape[0]
-
-    # if the foreground image is to be placed out of bounds,
-    # we don't need to do any more processing - just return
-    # the background.
-    if x >= background_width or y >= background_height:
-        return background
-
-    # get some data about the foreground pic
-    w = overlay.shape[1]
-    h = overlay.shape[0]
-
-    # if the overlay image will be outside the bounds of the background,
-    # then cut off the bottom.
-    if x + w > background_width:
-        w = background_width - x
-        overlay = overlay[:, :w]
-
-    # if the right side of the overlay image will be out of bounds,
-    # cut it off. This is just like above.
-    if h + y > background_height:
-        h = background_height - y
-        overlay = overlay[:h]
-
-    if overlay.shape[2] < 4:
-        overlay = np.concatenate(
-                [
-                    overlay,
-                    np.ones((overlay.shape[0], overlay.shape[1], 1), dtype = overlay.dtype) * 255
-                ],
-                axis = 2
-                )
-
-        overlay_image = overlay[..., :3]
-        mask = overlay[..., 3:] / 255.0
-
-        background[y:y+h, x:x+w] = (1.0 - mask) * background[y:y+h, x:x+w] + mask * overlay_image
-
-        return background
+FULLSCREEN = False
+WINDOW_NAME = "Pi Sentry Gun"
+WIDTH, HEIGHT = 1920, 1080
 
 
+# capture the camera input
 print("starting capture... ", end='')
 cap = cv.VideoCapture(VIDEO_SOURCE)
+# set the name of the window
 cv.namedWindow(WINDOW_NAME)
+# set the window to fullscreen if needed
+if FULLSCREEN:
+    cv.setWindowProperty(WINDOW_NAME, cv.WND_PROP_FULLSCREEN, cv.WINDOW_FULLSCREEN)
 print("done!")
 
-print("Listening to mouse... ", end='')
-listener = mouse.Listener(on_click=on_click)
-listener.start()
-print("done!")
-
-print("Loading buttons... ", end='')
-left_button = cv.imread(LEFT_ARROW)
-right_button = cv.imread(RIGHT_ARROW)
-up_button = cv.imread(UP_ARROW)
-down_button = cv.imread(DOWN_ARROW)
-print("done!")
-
+# this will run if we can't open the camera
 if not cap.isOpened():
     print("Cannot open camera.")
     exit(1)
@@ -96,15 +32,12 @@ while True:
         print("Can't receive frame (stream end?). Exiting...")
         exit(0)
 
-    # left button code
-    frame = overlay_image(frame, left_button, 0, frame.shape[0] - 64)
-    # up button
-    frame = overlay_image(frame, up_button, 64, frame.shape[0] - 128)
-    # down button
-    frame = overlay_image(frame, down_button, 64, frame.shape[0] - 64)
-    # right button
-    frame = overlay_image(frame, right_button, 128, frame.shape[0] - 64)
+    # resize image so that it fits the fullscreen window
+    # we don't need to do this if we aren't fullscreen
+    if FULLSCREEN:
+        frame = cv.resize(frame, dsize=(WIDTH, HEIGHT), interpolation=cv.INTER_LINEAR)
 
+    # show the image on the window
     cv.imshow(WINDOW_NAME, frame)
 
     if cv.waitKey(1) == ord('q'):

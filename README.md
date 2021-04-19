@@ -3,7 +3,7 @@ Commands you need to run on the pi to get this program up-and-running:
 
 sudo apt-get install fswebcam python3-opencv
 
-pip3 install matplotlib pynput
+pip3 install inputs
 
 
 You will also need to enable camera in the Pi's configuration menu.
