@@ -17,6 +17,8 @@ CIRCLE_RADIUS = (SQUARE_SIZE // 2) - 5
 # Colors
 BLUE = (0,0,255)
 BLACK = (0,0,0)
+RED = (255,0,0)
+YELLOW = (255,255,0)
 
 # Function which creates an empty "board" - a 6x7 numpy matrix.
 def create_board():
@@ -83,7 +85,13 @@ def print_board(board):
     # flip the board over the 0 axis (x)
     print(np.flip(board, 0))
 
+def draw_top_row():
+    pygame.draw.rect(screen, BLACK, (0, 0, screen_width, SQUARE_SIZE))
+
 def draw_board(board):
+    # We need to flip the board to make x=0,y=0 the bottom-right.
+    board = np.flip(board, 0)
+    
     for c in range(COLUMN_COUNT):
         for r in range(ROW_COUNT):
             # Pygame's draw.rect() func needs a rectangle as its third argument.
@@ -93,12 +101,23 @@ def draw_board(board):
             # want.
             rect = (c*SQUARE_SIZE, (r+1)*SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
             pygame.draw.rect(screen, BLUE, rect)
+            
             # Pygame's circles need a position and a radius.
             circle_position = ((c*SQUARE_SIZE) + (SQUARE_SIZE // 2), ((r+1)*SQUARE_SIZE) + (SQUARE_SIZE // 2))
-            pygame.draw.circle(screen, BLACK, circle_position, CIRCLE_RADIUS)
+            # We default to a black circle - no piece. If there is actually a
+            # piece at board[r][c] though, change that color.
+            circle_color = BLACK
+            if board[r][c] == PLAYER_1_PIECE:
+                circle_color = RED
+            elif board[r][c] == PLAYER_2_PIECE:
+                circle_color = YELLOW
+                
+            pygame.draw.circle(screen, circle_color, circle_position, CIRCLE_RADIUS)
+
+    # This needs to be called to actually change what is shown on the screen.
+    pygame.display.update()
 
 board = create_board()
-print_board(board)
 game_over = False
 turn = 1
 
@@ -114,6 +133,8 @@ screen = pygame.display.set_mode(screen_size)
 draw_board(board)
 pygame.display.update()
 
+text_font = pygame.font.SysFont("monospace", 75)
+
 while not game_over:
 
     for event in pygame.event.get():
@@ -122,30 +143,52 @@ while not game_over:
         if event.type == pygame.QUIT:
             sys.exit()
 
+        if event.type == pygame.MOUSEMOTION:
+            # Fill the top row with a big BLACK rectangle to get rid
+            # of the previous chip on the top.
+            draw_top_row()
+            pos_x = event.pos[0]
+            if turn % 2 == 1:
+                pygame.draw.circle(screen, RED, (pos_x, SQUARE_SIZE // 2), CIRCLE_RADIUS)
+            else:
+                pygame.draw.circle(screen, YELLOW, (pos_x, SQUARE_SIZE // 2), CIRCLE_RADIUS)
+            pygame.display.update()
+            continue
+        
         # Now onto the more interesting stuff. Check for mouse down.
         if event.type == pygame.MOUSEBUTTONDOWN:
-            print("Event heard.")
-##            # ask player 1 for input
-##            if turn % 2 == 1:
-##                col = int(input("Player 1, make your selection (0-6)"))
-##                if is_valid_location(board, col):
-##                    row = get_next_open_row(board, col)
-##                    drop_piece(board, row, col, PLAYER_1_PIECE)
-##
-##                    if winning_move(board, PLAYER_1_PIECE):
-##                        print("Player 1 wins! Congrats!")
-##                        game_over = True
-##
-##            # ask player 2 for input
-##            else:
-##                col = int(input("Player 2, make your selection (0-6)"))
-##                if is_valid_location(board, col):
-##                    row = get_next_open_row(board, col)
-##                    drop_piece(board, row, col, PLAYER_2_PIECE)
-##
-##                    if winning_move(board, PLAYER_2_PIECE):
-##                        print("Player 2 wins! Congrats!")
-##                        game_over = True
-##
-##            turn += 1
-##            print_board(board)
+            pos_x = event.pos[0]
+            
+            # ask player 1 for input
+            if turn % 2 == 1:
+                col = pos_x // SQUARE_SIZE
+                if is_valid_location(board, col):
+                    row = get_next_open_row(board, col)
+                    drop_piece(board, row, col, PLAYER_1_PIECE)
+                    turn += 1
+
+                    if winning_move(board, PLAYER_1_PIECE):
+                        draw_top_row()
+                        label = text_font.render("Player 1 wins!", 1, RED)
+                        screen.blit(label, (40, 10))
+                        game_over = True
+
+            # ask player 2 for input
+            else:
+                col = pos_x // SQUARE_SIZE
+                if is_valid_location(board, col):
+                    row = get_next_open_row(board, col)
+                    drop_piece(board, row, col, PLAYER_2_PIECE)
+                    turn += 1
+
+                    if winning_move(board, PLAYER_2_PIECE):
+                        draw_top_row()
+                        label = text_font.render("Player 2 wins!", 1, YELLOW)
+                        screen.blit(label, (40, 10))
+                        game_over = True
+
+            # print_board(board)
+            draw_board(board)
+
+            if game_over:
+                pygame.time.wait(3000)
