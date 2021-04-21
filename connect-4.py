@@ -2,6 +2,8 @@ import numpy as np
 
 ROW_COUNT = 6
 COLUMN_COUNT = 7
+PLAYER_1_PIECE = 1
+PLAYER_2_PIECE = 2
 
 # Function which creates an empty "board" - a 6x7 numpy matrix.
 def create_board():
@@ -27,6 +29,41 @@ def get_next_open_row(board, col):
         if board[row][col] == 0:
             return row
 
+# A function which takes in a board and a piece. Returns True if piece has won
+# the game, or False if piece has not won the game.
+def winning_move(board, piece):
+    # Check horizontal locations for wins. Since we are only checking for
+    # horizontal wins, we don't need or want to start checking from the
+    # spaces in the rightmost 3 columns of the board since we will overstep
+    # the bounds of the board in doing so.
+    for c in range(COLUMN_COUNT - 3):
+        # For hozontal wins, we must check all the rows.
+        for r in range(ROW_COUNT):
+            if board[r][c] == piece and board[r][c+1] == piece and board[r][c+2] == piece and board[r][c+3] == piece:
+                return True
+    # Check vertical locations for wins. This is very similar to the horizontal
+    # check above.
+    for c in range(COLUMN_COUNT):
+        # We don't want or need to check all the rows.
+        for r in range(ROW_COUNT - 3):
+            if board[r][c] == piece and board[r+1][c] == piece and board[r+2][c] == piece and board[r+3][c] == piece:
+                return True
+    # Check positively sloped diagonals for wins. This only needs to be done for
+    # row 0 to ROW_COUNT-3, and column 0 to COLUMN_COUNT - 3. Anything more
+    # would result in us trying to access a variable outside the range of the
+    # board.
+    for c in range(COLUMN_COUNT - 3):
+        for r in range(ROW_COUNT - 3):
+            if board[r][c] == piece and board[r+1][c+1] == piece and board[r+2][c+2] == piece and board[r+3][c+3] == piece:
+                return True
+    # Check negatively sloped diagonals for wins. Similar to the above loop,
+    # but we only need to check from row 3 to ROW_COUNT, and column 0 to
+    # COLUMN_COUNT - 3.
+    for c in range(COLUMN_COUNT - 3):
+        for r in range(3, ROW_COUNT):
+            if board[r][c] == piece and board[r-1][c+1] == piece and board[r-2][c+2] == piece and board[r-3][c+3] == piece:
+                return True
+
 # Change the orientation of the board so it looks nice when printing,
 # then print the board.
 def print_board(board):
@@ -44,14 +81,22 @@ while not game_over:
         col = int(input("Player 1, make your selection (0-6)"))
         if is_valid_location(board, col):
             row = get_next_open_row(board, col)
-            drop_piece(board, row, col, 1)
+            drop_piece(board, row, col, PLAYER_1_PIECE)
+
+            if winning_move(board, PLAYER_1_PIECE):
+                print("Player 1 wins! Congrats!")
+                game_over = True
 
     # ask player 2 for input
     else:
         col = int(input("Player 2, make your selection (0-6)"))
         if is_valid_location(board, col):
             row = get_next_open_row(board, col)
-            drop_piece(board, row, col, 2)
+            drop_piece(board, row, col, PLAYER_2_PIECE)
+
+            if winning_move(board, PLAYER_2_PIECE):
+                print("Player 2 wins! Congrats!")
+                game_over = True
 
     turn += 1
     print_board(board)
