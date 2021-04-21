@@ -1,9 +1,22 @@
 import numpy as np
+import pygame
+import sys
 
+# Board settings
 ROW_COUNT = 6
 COLUMN_COUNT = 7
+
+# Piece settings. Best not to change.
 PLAYER_1_PIECE = 1
 PLAYER_2_PIECE = 2
+
+# Size of each square on the screen (in pixels)
+SQUARE_SIZE = 100
+CIRCLE_RADIUS = (SQUARE_SIZE // 2) - 5
+
+# Colors
+BLUE = (0,0,255)
+BLACK = (0,0,0)
 
 # Function which creates an empty "board" - a 6x7 numpy matrix.
 def create_board():
@@ -70,33 +83,69 @@ def print_board(board):
     # flip the board over the 0 axis (x)
     print(np.flip(board, 0))
 
+def draw_board(board):
+    for c in range(COLUMN_COUNT):
+        for r in range(ROW_COUNT):
+            # Pygame's draw.rect() func needs a rectangle as its third argument.
+            # Rectangles have an X value, a Y value, an X size, and a Y size.
+            # There is also a 4th available parameter, but we don't need to
+            # use it - it is for the outline of the rectangle, which we don't
+            # want.
+            rect = (c*SQUARE_SIZE, (r+1)*SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
+            pygame.draw.rect(screen, BLUE, rect)
+            # Pygame's circles need a position and a radius.
+            circle_position = ((c*SQUARE_SIZE) + (SQUARE_SIZE // 2), ((r+1)*SQUARE_SIZE) + (SQUARE_SIZE // 2))
+            pygame.draw.circle(screen, BLACK, circle_position, CIRCLE_RADIUS)
+
 board = create_board()
 print_board(board)
 game_over = False
 turn = 1
 
+# initialize pygame
+pygame.init()
+# Determine screen width and height. The height gets an extra square added
+# for the space that holds the text and the piece to be dropped.
+screen_width = COLUMN_COUNT * SQUARE_SIZE
+screen_height = (ROW_COUNT + 1) * SQUARE_SIZE
+screen_size = (screen_width, screen_height)
+
+screen = pygame.display.set_mode(screen_size)
+draw_board(board)
+pygame.display.update()
+
 while not game_over:
-    # ask player 1 for input
-    if turn % 2 == 1:
-        col = int(input("Player 1, make your selection (0-6)"))
-        if is_valid_location(board, col):
-            row = get_next_open_row(board, col)
-            drop_piece(board, row, col, PLAYER_1_PIECE)
 
-            if winning_move(board, PLAYER_1_PIECE):
-                print("Player 1 wins! Congrats!")
-                game_over = True
+    for event in pygame.event.get():
 
-    # ask player 2 for input
-    else:
-        col = int(input("Player 2, make your selection (0-6)"))
-        if is_valid_location(board, col):
-            row = get_next_open_row(board, col)
-            drop_piece(board, row, col, PLAYER_2_PIECE)
+        # Two boilerplate lines. If pygame says to quit, quit.
+        if event.type == pygame.QUIT:
+            sys.exit()
 
-            if winning_move(board, PLAYER_2_PIECE):
-                print("Player 2 wins! Congrats!")
-                game_over = True
-
-    turn += 1
-    print_board(board)
+        # Now onto the more interesting stuff. Check for mouse down.
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            print("Event heard.")
+##            # ask player 1 for input
+##            if turn % 2 == 1:
+##                col = int(input("Player 1, make your selection (0-6)"))
+##                if is_valid_location(board, col):
+##                    row = get_next_open_row(board, col)
+##                    drop_piece(board, row, col, PLAYER_1_PIECE)
+##
+##                    if winning_move(board, PLAYER_1_PIECE):
+##                        print("Player 1 wins! Congrats!")
+##                        game_over = True
+##
+##            # ask player 2 for input
+##            else:
+##                col = int(input("Player 2, make your selection (0-6)"))
+##                if is_valid_location(board, col):
+##                    row = get_next_open_row(board, col)
+##                    drop_piece(board, row, col, PLAYER_2_PIECE)
+##
+##                    if winning_move(board, PLAYER_2_PIECE):
+##                        print("Player 2 wins! Congrats!")
+##                        game_over = True
+##
+##            turn += 1
+##            print_board(board)
