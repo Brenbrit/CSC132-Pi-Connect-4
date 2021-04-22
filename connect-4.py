@@ -192,7 +192,7 @@ def play_game():
             # This time starts off at 500ms, then goes down by 25ms for each
             # turn until it reaches 100ms. It then stays there fore the rest
             # of the game.
-            if turn <= 19:
+            if turn <= 17:
                 position_change_delay = 500 - (25 * (turn - 1))
             else:
                 position_change_delay = 100
