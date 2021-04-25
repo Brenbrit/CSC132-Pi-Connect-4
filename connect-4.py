@@ -231,21 +231,23 @@ def play_game():
         # Draw the board as it currently is.
         draw_board(board)
 
-        # send the server our piece
-        send_data("p={}".format(MY_PIECE))
+        if not game_started:
+            # send the server our piece
+            send_data("p={}".format(MY_PIECE))
+        
 
-        # Check if other player has connected
-        if get_next_data(server_sock) == "wait" and not game_started:
-            # Other player hasn't connected. Let's wait.
-            print("Waiting for other player to connect ", end='')
-            while True:
-                time.sleep(1)
-                print('.', end='')
-                send_data("waited")
-                if get_next_data(server_sock) == "start":
-                    print("\nOpponent found!")
-                    game_started = True
-                    break
+            # Check if other player has connected
+            if get_next_data(server_sock) == "wait":
+                # Other player hasn't connected. Let's wait.
+                print("Waiting for other player to connect ", end='')
+                while True:
+                    time.sleep(1)
+                    print('.', end='')
+                    send_data("waited")
+                    if get_next_data(server_sock) == "start":
+                        print("\nOpponent found!")
+                        game_started = True
+                        break
 
         # If we get here, the other player has connected.
         print("Starting game!")
