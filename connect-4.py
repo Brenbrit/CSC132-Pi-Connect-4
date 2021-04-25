@@ -207,8 +207,10 @@ def play_game():
     # Game variables!
     # The board. A numpy matrix.
     board = create_board()
-    # The game's state. The game is not over by default.
+    # The game's state. The game is not over by default, and the game has not
+    # started by default.
     game_over = False
+    game_started = False
     # Which turn is it? This increments each time someone places a piece down.
     turn = 1
     # which spot over the board is the piece hovering? Changes many times
@@ -233,7 +235,7 @@ def play_game():
         send_data("p={}".format(MY_PIECE))
 
         # Check if other player has connected
-        if get_next_data(server_sock) == "wait":
+        if get_next_data(server_sock) == "wait" and not game_started:
             # Other player hasn't connected. Let's wait.
             print("Waiting for other player to connect ", end='')
             while True:
@@ -242,6 +244,7 @@ def play_game():
                 send_data("waited")
                 if get_next_data(server_sock) == "start":
                     print("\nOpponent found!")
+                    game_started = True
                     break
 
         # If we get here, the other player has connected.
