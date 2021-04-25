@@ -31,7 +31,7 @@ def threaded_client(connection):
     connection.send("Welcome to the server!".encode("ascii"))
     while True:
         data = connection.recv(2048).decode("ascii")
-        print("Received message " + data)
+        # print("Received message " + data)
         if not data:
             break
 
@@ -44,6 +44,7 @@ def threaded_client(connection):
         if data.startswith("p=") and p1_connected and p2_connected:
             # clear the move list
             init_move_list()
+            print("Someone is trying to start a game after one has already been started! Cleared move list.")
             p1_connected = False
             p2_connected = False
 
