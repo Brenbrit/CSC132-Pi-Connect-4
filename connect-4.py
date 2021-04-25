@@ -179,7 +179,7 @@ def init_networking(server_ip, port):
 # Get the next 2048 bytes (overkill) from a socket
 def get_next_data(sock):
     data = sock.recv(2048).decode(CODEC)
-    # print("Received data: \"{}\"".format(data))
+    print("Received data: \"{}\"".format(data))
     return data
 
 # Send data to the server
@@ -208,8 +208,10 @@ def play_game():
     # The board. A numpy matrix.
     board = create_board()
     # The game's state. The game is not over by default, and the game has not
-    # started by default.
+    # started by default. Why is game_started global? Because of scope issues
+    # in the beginning of the "while not game_over" loop.
     game_over = False
+    global game_started
     game_started = False
     # Which turn is it? This increments each time someone places a piece down.
     turn = 1
@@ -227,6 +229,8 @@ def play_game():
         init_networking(SERVER_IP, PORT)
     
     while not game_over:
+
+        print("game_over: {}. game_started: {}".format(game_over, game_started))
 
         # Draw the board as it currently is.
         draw_board(board)
