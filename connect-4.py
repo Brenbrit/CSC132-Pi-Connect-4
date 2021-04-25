@@ -179,7 +179,7 @@ def init_networking(server_ip, port):
 # Get the next 2048 bytes (overkill) from a socket
 def get_next_data(sock):
     data = sock.recv(2048).decode(CODEC)
-    print("Received data: \"{}\"".format(data))
+    # print("Received data: \"{}\"".format(data))
     return data
 
 # Send data to the server
@@ -201,6 +201,15 @@ def get_move(turn_num):
             break
     print("\nOpponent played on col {}!".format(response))
     return(int(response))
+
+# Function which shows some text at the top of the screen to indicate that the
+# other player has not yet connected.
+def no_opponent_text(seconds_waited):
+    draw_top_row()
+    label = text_font.render("Matching" + "." * (seconds_waited % 4), 1, MY_COLOR)
+    # Display the label.
+    screen.blit(label, (40, 10))
+    pygame.display.update()
 
 def play_game():
 
@@ -228,8 +237,6 @@ def play_game():
     
     while not game_over:
 
-        print("game_over: {}. game_started: {}".format(game_over, game_started))
-
         # Draw the board as it currently is.
         draw_board(board)
 
@@ -242,15 +249,17 @@ def play_game():
             response = get_next_data(server_sock)
             if response == "wait":
                 # Other player hasn't connected. Let's wait.
-                print("Waiting for other player to connect ", end='')
+                print("Waiting for other player to connect.", end='')
+                seconds_waited = 0
                 while True:
                     time.sleep(1)
-                    print('.', end='')
+                    seconds_waited += 1
                     send_data("waited")
                     if get_next_data(server_sock) == "start":
                         print("\nOpponent found! Starting game.")
                         game_started = True
                         break
+                    no_opponent_text(seconds_waited)
             elif response == "start":
                 print("Opponent found! Starting game.")
                 game_started = True
