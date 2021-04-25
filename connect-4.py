@@ -179,7 +179,7 @@ def init_networking(server_ip, port):
 # Get the next 2048 bytes (overkill) from a socket
 def get_next_data(sock):
     data = sock.recv(2048).decode(CODEC)
-    print("Received data: \"{}\"".format(data))
+    # print("Received data: \"{}\"".format(data))
     return data
 
 # Send data to the server
@@ -281,7 +281,11 @@ def play_game():
                     if is_valid_location(board, piece_col):
                         
                         # Valid move! Send the turn to the server.
-                        send_data("turn {}:{}".format(turn, piece_col))
+                        while True:
+                            send_data("turn {}:{}".format(turn, piece_col))
+                            if get_next_data(server_sock) == "affirm":
+                                break
+                        
                         
                         # Place the piece.
                         row = get_next_open_row(board, piece_col)
