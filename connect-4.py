@@ -1,6 +1,8 @@
 import numpy as np
 import pygame
+import socket
 import sys
+import time
 
 # Board settings
 ROW_COUNT = 6
@@ -27,6 +29,11 @@ BLUE = (0,0,255)
 BLACK = (0,0,0)
 RED = (255,0,0)
 YELLOW = (255,255,0)
+
+# Server settings
+SERVER_IP = "104.238.145.167"
+PORT = 12345
+CODEC = "ascii"
 
 # Some derivative variables
 # 3 - MY_PIECE only works if the pieces are 1 and 2.
@@ -153,12 +160,47 @@ def important_event_happened():
     # We didn't find anything worth writing home about. Return False.
     return False
 
-# This import is temporary! Remove when proper networking is added!
-import random
-def get_opponent_move():
-    # This is where we will eventually put some fancy networking.
-    # For now, just return 0.
-    return random.randint(0, 6)
+# This function creates the initial connection to the server.
+def init_networking(server_ip, port):
+    try:
+        # Bind to the host and port
+        server_sock.connect((server_ip, port))
+    except Exception as e:
+        print("Failed to connect to server. Exception:")
+        print(e)
+        return None
+    print("Connected to server, response: ", end='')
+    print(get_next_data(server_sock))
+    
+    global socket_connected
+    socket_connected = True
+    
+
+# Get the next 2048 bytes (overkill) from a socket
+def get_next_data(sock):
+    data = sock.recv(2048).decode(CODEC)
+    print("Received data: \"{}\"".format(data))
+    return data
+
+# Send data to the server
+def send_data(data):
+    server_sock.send(data.encode(CODEC))
+
+# Query the server for the opponent's move. If the other player hasn't moved
+# yet, then wait a second and try again.
+def get_move(turn_num):
+    print("Waiting for opponent to move ", end='')
+    response = ''
+    while True:
+        send_data("waiting {}".format(turn))
+        response = get_next_data(server_sock)
+        if response == "wait":
+            time.sleep(1)
+            print('.', end='')
+        elif len(response) == 1:
+            break
+    print("\nOpponent played on col {}!".format(response))
+    return(int(response))
 
 def play_game():
 
@@ -175,14 +217,35 @@ def play_game():
     # Is the piece moving right or left? 1 for right, -1 for left.
     piece_direction = 1
 
-
     draw_board(board)
     pygame.display.update()
+
+    # Start the server connection if needed.
+    if not socket_connected:
+        init_networking(SERVER_IP, PORT)
     
     while not game_over:
 
         # Draw the board as it currently is.
         draw_board(board)
+
+        # send the server our piece
+        send_data("p={}".format(MY_PIECE))
+
+        # Check if other player has connected
+        if get_next_data(server_sock) == "wait":
+            # Other player hasn't connected. Let's wait.
+            print("Waiting for other player to connect ", end='')
+            while True:
+                time.sleep(1)
+                print('.', end='')
+                send_data("waited")
+                if get_next_data(server_sock) == "start":
+                    print("\nOpponent found!")
+                    break
+
+        # If we get here, the other player has connected.
+        print("Starting game!")
 
         if 2 - (turn % 2) == MY_PIECE:
             # It's player 1's turn! Start moving the piece over the top of the
@@ -216,7 +279,11 @@ def play_game():
                     # Looks like the user clicked the mouse or the big red
                     # button! See if we can execute that move.
                     if is_valid_location(board, piece_col):
-                        # It is! Place the piece.
+                        
+                        # Valid move! Send the turn to the server.
+                        send_data("turn {}:{}".format(turn, piece_col))
+                        
+                        # Place the piece.
                         row = get_next_open_row(board, piece_col)
                         drop_piece(board, row, piece_col, MY_PIECE)
                         # Draw the top row to get rid of the piece that was
@@ -236,6 +303,9 @@ def play_game():
                             screen.blit(label, (40, 10))
                             pygame.display.update()
                             game_over = True
+
+                            # Tell the server to reset.
+                            send_data("reset")
 
                 # If we get here, nothing interesting happened since we started
                 # wait()ing. Move the piece to the next column.
@@ -258,7 +328,7 @@ def play_game():
             # move, then do the normal operations on it. Assuming the other
             # player isn't cheating in some way, this will be a guaranteed
             # good move.
-            opp_move = get_opponent_move()
+            opp_move = get_move(turn)
             row = get_next_open_row(board, opp_move)
             drop_piece(board, row, opp_move, OPP_PIECE)
             pygame.display.update()
@@ -292,6 +362,12 @@ screen = pygame.display.set_mode(screen_size)
 
 text_font = pygame.font.SysFont("monospace", 75)
 
+# Start up networking! This doesn't actually connect to anything yet (that is
+# done where the user can see). The two arguments here are really just
+# boilerplate to us. We don't need to change them.
+server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+socket_connected = False
+
 while True:
 
     # Clear any events from the queue. This prevents people from placing chips
@@ -301,3 +377,4 @@ while True:
     # start the game! Lessss gooo!
     play_game()
 
+server_sock.close()
