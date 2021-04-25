@@ -41,7 +41,7 @@ def threaded_client(connection):
         # If a player sends us an initial message while both players are
         # connected, it's likely that the game ended and they want to play
         # again.
-        if data.startswith("p=") and p1_connected and p2_connected:
+        if (data == "p=1" or data == "p=2") and p1_connected and p2_connected:
             # clear the move list
             init_move_list()
             print("Someone is trying to start a game after one has already been started! Cleared move list.")
