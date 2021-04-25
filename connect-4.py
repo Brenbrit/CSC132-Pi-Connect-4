@@ -35,6 +35,9 @@ SERVER_IP = "104.238.145.167"
 PORT = 12345
 CODEC = "ascii"
 
+# How long to wait for various notifications (,s)
+START_TEXT_TIME = 1000
+
 # Some derivative variables
 # 3 - MY_PIECE only works if the pieces are 1 and 2.
 OPP_PIECE = 3 - MY_PIECE
@@ -211,6 +214,23 @@ def no_opponent_text(seconds_waited):
     screen.blit(label, (40, 10))
     pygame.display.update()
 
+# Show text at the top of the screen to indicate that the game is starting.
+# The one argument indicates the amount of time to wait with this text at the top.
+def show_starting_text():
+    # Make sure any text isn't left over from other things
+    draw_top_row()
+    # Make the label and display it.
+    label = text_font.render("Starting game!", 1, MY_COLOR)
+    screen.blit(label, (40, 10))
+    pygame.display.update()
+
+    # Wait for duration seconds
+    pygame.time.wait(START_TEXT_TIME)
+
+    # Remove the starting text
+    draw_top_row()
+    pygame.display.update()
+
 def play_game():
 
     # Game variables!
@@ -258,17 +278,26 @@ def play_game():
                     if get_next_data(server_sock) == "start":
                         print("\nOpponent found! Starting game.")
                         game_started = True
+                        show_starting_text()
                         break
                     no_opponent_text(seconds_waited)
+                    
+            # If the initial response is "start", then the other player has
+            # already connected.
             elif response == "start":
                 print("Opponent found! Starting game.")
                 game_started = True
+                show_starting_text()
 
         # If we get here, the other player has connected.
 
         if 2 - (turn % 2) == MY_PIECE:
             # It's player 1's turn! Start moving the piece over the top of the
             # board.
+
+            # Clear any events from the queue. This is done so that we don't
+            # count clicks made while the other player was playing.
+            pygame.event.clear()
             
             # How long should we wait before changing the position of the piece? (ms)
             # This time starts off at 500ms, then goes down by 25ms for each
