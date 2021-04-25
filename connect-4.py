@@ -238,10 +238,11 @@ def play_game():
         if not game_started:
             # send the server our piece
             send_data("p={}".format(MY_PIECE))
-            print("Looks like the game hasn't started yet. Sent piece.")
+            print("Sent piece to server.")
 
             # Check if other player has connected
-            if get_next_data(server_sock) == "wait":
+            response = get_next_data(server_sock)
+            if response == "wait":
                 # Other player hasn't connected. Let's wait.
                 print("Waiting for other player to connect ", end='')
                 while True:
@@ -252,6 +253,9 @@ def play_game():
                         print("\nOpponent found! Starting game.")
                         game_started = True
                         break
+            elif response == "start":
+                print("Opponent found! Starting game.")
+                game_started = True
 
         # If we get here, the other player has connected.
 
@@ -293,6 +297,7 @@ def play_game():
                             send_data("turn {}:{}".format(turn, piece_col))
                             if get_next_data(server_sock) == "affirm":
                                 break
+                            print("Turn {}:{} received by server.".format(turn, piece_col))
                         
                         
                         # Place the piece.
