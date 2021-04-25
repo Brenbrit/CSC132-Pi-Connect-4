@@ -192,7 +192,7 @@ def get_move(turn_num):
     print("Waiting for opponent to move ", end='')
     response = ''
     while True:
-        send_data("waiting {}".format(turn))
+        send_data("waiting {}".format(turn_num))
         response = get_next_data(server_sock)
         if response == "wait":
             time.sleep(1)
