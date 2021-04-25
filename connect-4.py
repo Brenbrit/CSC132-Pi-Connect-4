@@ -234,7 +234,7 @@ def play_game():
         if not game_started:
             # send the server our piece
             send_data("p={}".format(MY_PIECE))
-        
+            print("Looks like the game hasn't started yet. Sent piece.")
 
             # Check if other player has connected
             if get_next_data(server_sock) == "wait":
@@ -245,12 +245,11 @@ def play_game():
                     print('.', end='')
                     send_data("waited")
                     if get_next_data(server_sock) == "start":
-                        print("\nOpponent found!")
+                        print("\nOpponent found! Starting game.")
                         game_started = True
                         break
 
         # If we get here, the other player has connected.
-        print("Starting game!")
 
         if 2 - (turn % 2) == MY_PIECE:
             # It's player 1's turn! Start moving the piece over the top of the
