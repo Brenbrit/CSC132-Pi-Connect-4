@@ -208,10 +208,8 @@ def play_game():
     # The board. A numpy matrix.
     board = create_board()
     # The game's state. The game is not over by default, and the game has not
-    # started by default. Why is game_started global? Because of scope issues
-    # in the beginning of the "while not game_over" loop.
+    # started by default.
     game_over = False
-    global game_started
     game_started = False
     # Which turn is it? This increments each time someone places a piece down.
     turn = 1
