@@ -15,6 +15,12 @@ p1_connected = False
 p2_connected = False
 
 
+def init_move_list():
+    global moves
+    moves = []
+    for i in range(43):
+        moves.append('')
+
 def threaded_client(connection):
 
     global p1_connected
@@ -31,6 +37,15 @@ def threaded_client(connection):
 
         # default reply
         reply = ''
+
+        # If a player sends us an initial message while both players are
+        # connected, it's likely that the game ended and they want to play
+        # again.
+        if data.startswith("p=") and p1_connected and p2_connected:
+            # clear the move list
+            init_move_list()
+            p1_connected = False
+            p2_connected = False
 
         if data == "p=1":
             p1_connected = True
@@ -75,8 +90,7 @@ def threaded_client(connection):
 # The list of moves! A list of strings, each containing a number 0-6.
 # These, in order, represent all of the moves of the game so far.
 moves = []
-for i in range(43):
-    moves.append('')
+init_move_list()
 
 # create a socket object
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
