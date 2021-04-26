@@ -158,6 +158,8 @@ def important_event_happened():
 
         # If the user has quit the game, terminate immediately.
         if event.type == pygame.QUIT:
+            pygame.display.quit()
+            pygame.quit()
             sys.exit()
 
         # If the user clicked the mouse or button, return true.
