@@ -119,6 +119,12 @@ def print_board(board):
 def draw_top_row():
     pygame.draw.rect(screen, BLACK, (0, 0, screen_width, SQUARE_SIZE))
 
+# Close down Pygame and then exit the program.
+def exit_all():
+    pygame.display.quit()
+    pygame.quit()
+    sys.exit()
+
 # The function which translates the numpy matrix into a pretty picture for
 # us to look at!
 def draw_board(board):
@@ -158,12 +164,15 @@ def important_event_happened():
 
         # If the user has quit the game, terminate immediately.
         if event.type == pygame.QUIT:
-            pygame.display.quit()
-            pygame.quit()
-            sys.exit()
+            exit_all()
+
+        # Also exit if the user pressed Q.
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_q:
+                exit_all()
 
         # If the user clicked the mouse or button, return true.
-        if event.type == pygame.MOUSEBUTTONDOWN:
+        elif event.type == pygame.MOUSEBUTTONDOWN:
             return True
 
     # We didn't find anything worth writing home about. Return False.
@@ -188,11 +197,12 @@ def init_networking(server_ip, port):
 # Get the next 2048 bytes (overkill) from a socket
 def get_next_data(sock):
     data = sock.recv(2048).decode(CODEC)
-    # print("Received data: \"{}\"".format(data))
+    print("Received data: \"{}\"".format(data))
     return data
 
 # Send data to the server
 def send_data(data):
+    print("Sent data: \"{}\"".format(data))
     server_sock.send(data.encode(CODEC))
 
 # Query the server for the opponent's move. If the other player hasn't moved
