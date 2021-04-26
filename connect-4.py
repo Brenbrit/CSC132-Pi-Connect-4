@@ -35,7 +35,7 @@ SERVER_IP = "104.238.145.167"
 PORT = 12345
 CODEC = "ascii"
 
-# How long to wait for various notifications (,s)
+# How long to wait for various notifications (ms)
 START_TEXT_TIME = 1000
 
 # Some derivative variables
@@ -114,9 +114,13 @@ def print_board(board):
     # flip the board over the 0 axis (x)
     print(np.flip(board, 0))
 
+# Fill the top row of the screen (where text is placed) with a
+# BLACK rectangle.
 def draw_top_row():
     pygame.draw.rect(screen, BLACK, (0, 0, screen_width, SQUARE_SIZE))
 
+# The function which translates the numpy matrix into a pretty picture for
+# us to look at!
 def draw_board(board):
     # We need to flip the board to make x=0,y=0 the bottom-right.
     board = np.flip(board, 0)
@@ -402,6 +406,12 @@ def play_game():
     # Let's wait a few seconds to let this sink in.
     pygame.time.wait(5000)
     
+
+#
+#
+#   MAIN CODE!
+#
+#
 
 # initialize pygame
 pygame.init()
