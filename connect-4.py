@@ -209,12 +209,12 @@ def init_networking(server_ip, port):
 # Get the next 2048 bytes (overkill) from a socket
 def get_next_data(sock):
     data = sock.recv(2048).decode(CODEC)
-    print("Received data: \"{}\"".format(data))
+    # print("Received data: \"{}\"".format(data))
     return data
 
 # Send data to the server
 def send_data(data):
-    print("Sent data: \"{}\"".format(data))
+    # print("Sent data: \"{}\"".format(data))
     server_sock.send(data.encode(CODEC))
 
 # Query the server for the opponent's move. If the other player hasn't moved
