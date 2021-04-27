@@ -12,13 +12,25 @@ COLUMN_COUNT = 7
 PLAYER_1_PIECE = 1
 PLAYER_2_PIECE = 2
 
-# Which piece are we? This will likely be 1 or 2.
-# This is passed in with the runner scipt.
+# Argument processing. If none are passed, default to red piece and testing
+# mode.
 MY_PIECE = 1
-if len(sys.argv) < 2:
-    print("No arguments passed. Defaulting to piece 1: red.")
+KIOSK_MODE = False
+if len(sys.argv) == 1:
+    print("No arguments passed.")
+    print("Defaulting to piece 1: red.")
+    print("Defaulting to testing mode.")
+    print("Script is properly run: \"python3 connect-4.py <piece> <kiosk>\"")
+elif len(sys.argv) == 2:
+    MY_PIECE = int(sys.argv[1])
+    print("Defaulting to testing mode.")
 else:
     MY_PIECE = int(sys.argv[1])
+    if sys.argv[2].lower() == "kiosk":
+        print("Running in kiosk mode.")
+        KIOSK_MODE = True
+    else:
+        print("Running in testing mode.")
 
 # Size of each square on the screen (in pixels)
 SQUARE_SIZE = 100
