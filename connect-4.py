@@ -12,6 +12,27 @@ COLUMN_COUNT = 7
 PLAYER_1_PIECE = 1
 PLAYER_2_PIECE = 2
 
+# Colors
+BLUE = (0,0,255)
+BLACK = (0,0,0)
+RED = (255,0,0)
+YELLOW = (255,255,0)
+
+# Spacing of GUI features
+SQUARE_SIZE = 68
+CIRCLE_RADIUS = (SQUARE_SIZE // 2) - 4
+TEXT_SIZE = 48
+TEXT_FONT = "monospace"
+
+
+# Server settings
+SERVER_IP = "104.238.145.167"
+PORT = 12345
+CODEC = "ascii"
+
+# How long to wait for various notifications (ms)
+START_TEXT_TIME = 1000
+
 # Argument processing. If none are passed, default to red piece and testing
 # mode.
 MY_PIECE = 1
@@ -32,24 +53,6 @@ else:
     else:
         print("Running in testing mode.")
 
-# Size of each square on the screen (in pixels)
-SQUARE_SIZE = 100
-CIRCLE_RADIUS = (SQUARE_SIZE // 2) - 5
-
-# Colors
-BLUE = (0,0,255)
-BLACK = (0,0,0)
-RED = (255,0,0)
-YELLOW = (255,255,0)
-
-# Server settings
-SERVER_IP = "104.238.145.167"
-PORT = 12345
-CODEC = "ascii"
-
-# How long to wait for various notifications (ms)
-START_TEXT_TIME = 1000
-
 # Some derivative variables
 # 3 - MY_PIECE only works if the pieces are 1 and 2.
 OPP_PIECE = 3 - MY_PIECE
@@ -60,6 +63,15 @@ if MY_PIECE == 1:
 else:
     MY_COLOR = YELLOW
     OPP_COLOR = RED
+# X_OFFSET and Y_OFFSET are only important if we're in fullscreen. So, only
+# change them from zero if we're in kiosk mode.
+if KIOSK_MODE:
+    X_OFFSET = 162
+    Y_OFFSET = 2
+else:
+    X_OFFSET = 0
+    Y_OFFSET = 0
+LABEL_POS = (40 + X_OFFSET, 10 + Y_OFFSET)
 
 # Function which creates an empty "board" - a 6x7 numpy matrix.
 def create_board():
@@ -129,7 +141,7 @@ def print_board(board):
 # Fill the top row of the screen (where text is placed) with a
 # BLACK rectangle.
 def draw_top_row():
-    pygame.draw.rect(screen, BLACK, (0, 0, screen_width, SQUARE_SIZE))
+    pygame.draw.rect(screen, BLACK, (0+X_OFFSET, 0+Y_OFFSET, screen_width, SQUARE_SIZE))
 
 # Close down Pygame and then exit the program.
 def exit_all():
@@ -154,7 +166,7 @@ def draw_board(board):
             pygame.draw.rect(screen, BLUE, rect)
             
             # Pygame's circles need a position and a radius.
-            circle_position = ((c*SQUARE_SIZE) + (SQUARE_SIZE // 2), ((r+1)*SQUARE_SIZE) + (SQUARE_SIZE // 2))
+            circle_position = ((c*SQUARE_SIZE) + (SQUARE_SIZE // 2) + X_OFFSET, ((r+1)*SQUARE_SIZE) + (SQUARE_SIZE // 2) + Y_OFFSET)
             # We default to a black circle - no piece. If there is actually a
             # piece at board[r][c] though, change that color.
             circle_color = BLACK
@@ -233,24 +245,27 @@ def get_move(turn_num):
     print("\nOpponent played on col {}!".format(response))
     return(int(response))
 
+# Generic function to show text on the top of the screen. Intended to be
+# called by functions other than play_game().
+def show_text(text, color):
+    # Remove anything that was on the screen before
+    draw_top_row()
+    # Create the label and display it
+    label = text_font.render(text, 1, color)
+    # Display the label
+    screen.blit(label, LABEL_POS)
+    pygame.display.update()
+
 # Function which shows some text at the top of the screen to indicate that the
 # other player has not yet connected.
 def no_opponent_text(seconds_waited):
-    draw_top_row()
-    label = text_font.render("Matching" + "." * (seconds_waited % 4), 1, MY_COLOR)
-    # Display the label.
-    screen.blit(label, (40, 10))
-    pygame.display.update()
+    show_text("Matching" + "." * (seconds_waited % 4), MY_COLOR)
 
 # Show text at the top of the screen to indicate that the game is starting.
 # The one argument indicates the amount of time to wait with this text at the top.
-def show_starting_text():
-    # Make sure any text isn't left over from other things
-    draw_top_row()
-    # Make the label and display it.
-    label = text_font.render("Starting game!", 1, MY_COLOR)
-    screen.blit(label, (40, 10))
-    pygame.display.update()
+def show_game_start_text():
+    # Show the text.
+    show_text("Starting game!", MY_COLOR)
 
     # Wait for duration seconds
     pygame.time.wait(START_TEXT_TIME)
@@ -258,6 +273,12 @@ def show_starting_text():
     # Remove the starting text
     draw_top_row()
     pygame.display.update()
+
+# Show text at the beginning of the game before the server connection
+# is established.
+def show_startup_text():
+    show_text("Connect 4", MY_COLOR)
+    
 
 def play_game():
 
@@ -277,6 +298,7 @@ def play_game():
     piece_direction = 1
 
     draw_board(board)
+    show_startup_text()
     pygame.display.update()
 
     # Start the server connection if needed.
@@ -306,7 +328,7 @@ def play_game():
                     if get_next_data(server_sock) == "start":
                         print("\nOpponent found! Starting game.")
                         game_started = True
-                        show_starting_text()
+                        show_game_start_text()
                         break
                     no_opponent_text(seconds_waited)
                     
@@ -315,7 +337,7 @@ def play_game():
             elif response == "start":
                 print("Opponent found! Starting game.")
                 game_started = True
-                show_starting_text()
+                show_game_start_text()
 
         # If we get here, the other player has connected.
 
@@ -379,10 +401,7 @@ def play_game():
                         if winning_move(board, MY_PIECE):
                             # It is!
                             # Make the label which will be displayed.
-                            label = text_font.render("Player {} wins!".format(MY_PIECE), 1, MY_COLOR)
-                            # display the label.
-                            screen.blit(label, (40, 10))
-                            pygame.display.update()
+                            show_text("Player {} wins!".format(MY_PIECE), MY_COLOR)
                             game_over = True
 
                             # Tell the server to reset.
@@ -417,10 +436,7 @@ def play_game():
             # Check if the other player has just won.
             if winning_move(board, OPP_PIECE):
                 # They did! gg!
-                label = text_font.render("Player {} wins!".format(OPP_PIECE), 1, OPP_COLOR)
-                # Display the label.
-                screen.blit(label, (40, 10))
-                pygame.display.update()
+                show_text("Player {} wins!".format(OPP_PIECE), OPP_COLOR)
                 game_over = True
 
             # Increment the turn counter.
@@ -439,15 +455,22 @@ def play_game():
 
 # initialize pygame
 pygame.init()
+
+# FYI: The Raspi screens are 800x480 pixels.
+
 # Determine screen width and height. The height gets an extra square added
 # for the space that holds the text and the piece to be dropped.
 screen_width = COLUMN_COUNT * SQUARE_SIZE
 screen_height = (ROW_COUNT + 1) * SQUARE_SIZE
 screen_size = (screen_width, screen_height)
 
-screen = pygame.display.set_mode(screen_size)
+# Depending on whether or not we're in kiosk mode, activate fullscreen.
+if KIOSK_MODE:
+    screen = pygame.display.set_mode(screen_size, pygame.FULLSCREEN)
+else:
+    screen = pygame.display.set_mode(screen_size)
 
-text_font = pygame.font.SysFont("monospace", 75)
+text_font = pygame.font.SysFont(TEXT_FONT, TEXT_SIZE)
 
 # Start up networking! This doesn't actually connect to anything yet (that is
 # done where the user can see). The two arguments here are really just
