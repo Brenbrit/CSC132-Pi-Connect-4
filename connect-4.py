@@ -25,6 +25,10 @@ LABEL_POS = (40, 10)
 TEXT_SIZE = 48
 TEXT_FONT = "monospace"
 
+# The pin the button is connected to.
+BUTTON_PIN = 12
+# How many milliseconds to wait in-between GPIO checks.
+GPIO_CHECK_DELAY = 10
 
 # Server settings
 SERVER_IP = "104.238.145.167"
@@ -51,6 +55,7 @@ else:
     if sys.argv[2].lower() == "kiosk":
         print("Running in kiosk mode.")
         KIOSK_MODE = True
+        import rPi.GPIO as GPIO
     else:
         print("Running in testing mode.")
 
@@ -210,6 +215,17 @@ def init_networking(server_ip, port):
     global socket_connected
     socket_connected = True
     
+# Set up all the GPIO stuff. Lots of things that don't need changing here.
+def setupGPIO():
+    # Set pin mode
+    GPIO.setmode(GPIO.BCM)
+
+    # Set up our one input pin.
+    GPIO.setup(BUTTON_PIN, GPIO.IN)
+
+# Is the GPIO button being pressed right now?
+def read_button():
+    return GPIO.input(BUTTON_PIN)
 
 # Get the next 2048 bytes (overkill) from a socket
 def get_next_data(sock):
@@ -271,6 +287,17 @@ def show_game_start_text():
 # is established.
 def show_startup_text():
     show_text("Connect 4", MY_COLOR)
+
+# Wait a maximum time for some interesting event (mouse click, button press).
+def wait_for_event(millis_to_wait):
+    if KIOSK_MODE:
+        start_millis = time.time() * 1000
+        while time.time() * 1000 < (start_millis + millis_to_wait):
+            if read_button():
+                return True
+            else:
+                pygame.time.wait(GPIO_CHECK_DELAY)
+    return important_event_happened()
     
 
 def play_game():
@@ -362,10 +389,9 @@ def play_game():
                 pygame.draw.circle(screen, MY_COLOR, circle_pos, CIRCLE_RADIUS)
                 pygame.display.update()
 
-                # Wait some time.
-                pygame.time.wait(position_change_delay)
-                # Check for important events
-                if important_event_happened():
+                # If, in the last position_change_delay millis, the mouse was
+                # clicked or the GPIO was pressed, try to place the piece.
+                if wait_for_event(position_change_delay):
 
                     # Looks like the user clicked the mouse or the big red
                     # button! See if we can execute that move.
@@ -464,6 +490,10 @@ else:
     screen = pygame.display.set_mode(screen_size)
 
 text_font = pygame.font.SysFont(TEXT_FONT, TEXT_SIZE)
+
+# If we're in kiosk mode, set up GPIO.
+if KIOSK_MODE:
+    setupGPIO()
 
 # Start up networking! This doesn't actually connect to anything yet (that is
 # done where the user can see). The two arguments here are really just
