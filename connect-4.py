@@ -295,7 +295,10 @@ def wait_for_event(millis_to_wait):
         while time.time() * 1000 < (start_millis + millis_to_wait):
             if read_button():
                 return True
-    pygame.time.wait(GPIO_CHECK_DELAY)
+            else:
+                pygame.time.wait(GPIO_CHECK_DELAY)
+    else:
+        pygame.time.wait(millis_to_wait)
     return important_event_happened()
     
 
