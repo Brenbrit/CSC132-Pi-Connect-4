@@ -21,6 +21,7 @@ YELLOW = (255,255,0)
 # Spacing of GUI features
 SQUARE_SIZE = 68
 CIRCLE_RADIUS = (SQUARE_SIZE // 2) - 4
+LABEL_POS = (40, 10)
 TEXT_SIZE = 48
 TEXT_FONT = "monospace"
 
@@ -63,15 +64,7 @@ if MY_PIECE == 1:
 else:
     MY_COLOR = YELLOW
     OPP_COLOR = RED
-# X_OFFSET and Y_OFFSET are only important if we're in fullscreen. So, only
-# change them from zero if we're in kiosk mode.
-if KIOSK_MODE:
-    X_OFFSET = 162
-    Y_OFFSET = 2
-else:
-    X_OFFSET = 0
-    Y_OFFSET = 0
-LABEL_POS = (40 + X_OFFSET, 10 + Y_OFFSET)
+
 
 # Function which creates an empty "board" - a 6x7 numpy matrix.
 def create_board():
@@ -141,7 +134,7 @@ def print_board(board):
 # Fill the top row of the screen (where text is placed) with a
 # BLACK rectangle.
 def draw_top_row():
-    pygame.draw.rect(screen, BLACK, (0+X_OFFSET, 0+Y_OFFSET, screen_width, SQUARE_SIZE))
+    pygame.draw.rect(screen, BLACK, (0, 0, screen_width, SQUARE_SIZE))
 
 # Close down Pygame and then exit the program.
 def exit_all():
@@ -166,7 +159,7 @@ def draw_board(board):
             pygame.draw.rect(screen, BLUE, rect)
             
             # Pygame's circles need a position and a radius.
-            circle_position = ((c*SQUARE_SIZE) + (SQUARE_SIZE // 2) + X_OFFSET, ((r+1)*SQUARE_SIZE) + (SQUARE_SIZE // 2) + Y_OFFSET)
+            circle_position = ((c*SQUARE_SIZE) + (SQUARE_SIZE // 2), ((r+1)*SQUARE_SIZE) + (SQUARE_SIZE // 2))
             # We default to a black circle - no piece. If there is actually a
             # piece at board[r][c] though, change that color.
             circle_color = BLACK
