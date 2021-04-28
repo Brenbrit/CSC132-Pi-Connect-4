@@ -55,7 +55,7 @@ else:
     if sys.argv[2].lower() == "kiosk":
         print("Running in kiosk mode.")
         KIOSK_MODE = True
-        import rPi.GPIO as GPIO
+        import RPi.GPIO as GPIO
     else:
         print("Running in testing mode.")
 
