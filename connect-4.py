@@ -1,3 +1,18 @@
+#  _____ _    _____                            _     _  _   
+# |  __ (_)  / ____|                          | |   | || |  
+# | |__) |  | |     ___  _ __  _ __   ___  ___| |_  | || |_ 
+# |  ___/ | | |    / _ \| '_ \| '_ \ / _ \/ __| __| |__   _|
+# | |   | | | |___| (_) | | | | | | |  __/ (__| |_     | |  
+# |_|   |_|  \_____\___/|_| |_|_| |_|\___|\___|\__|    |_|
+                                           
+# written by The Muffin Men for CSC 132
+# Presented on May 11, 2021
+# Big thank you to Keith Galli for his tutorial on writing the UI with Pygame.
+# His series was used heavily in the beginning of the project to write the
+# base game and UI. His work is provided under the MIT license, which means
+# it is free to use, even commercially. The full source code of his can be
+# found at https://github.com/KeithGalli/Connect4-Python.
+
 import numpy as np
 import pygame
 import socket
