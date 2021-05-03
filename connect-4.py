@@ -10,8 +10,8 @@
 # Big thank you to Keith Galli for his tutorial on writing the UI with Pygame.
 # His series was used heavily in the beginning of the project to write the
 # base game and UI. His work is provided under the MIT license, which means
-# it is free to use, even commercially. The full source code of his can be
-# found at https://github.com/KeithGalli/Connect4-Python.
+# it is free to use The full source code of his can be found at
+# https://github.com/KeithGalli/Connect4-Python.
 
 import numpy as np
 import pygame
