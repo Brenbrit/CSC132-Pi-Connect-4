@@ -73,7 +73,7 @@ def threaded_client(connection):
             p1_connected = False
             p2_connected = False
             init_move_list()
-            reply == "affirm"
+            reply = "affirm"
 
         elif data.startswith("turn"):
             # This is turn data. Very important.
