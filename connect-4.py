@@ -1,10 +1,10 @@
-#  _____ _    _____                            _     _  _   
-# |  __ (_)  / ____|                          | |   | || |  
-# | |__) |  | |     ___  _ __  _ __   ___  ___| |_  | || |_ 
+#  _____ _    _____                            _     _  _
+# |  __ (_)  / ____|                          | |   | || |
+# | |__) |  | |     ___  _ __  _ __   ___  ___| |_  | || |_
 # |  ___/ | | |    / _ \| '_ \| '_ \ / _ \/ __| __| |__   _|
-# | |   | | | |___| (_) | | | | | | |  __/ (__| |_     | |  
+# | |   | | | |___| (_) | | | | | | |  __/ (__| |_     | |
 # |_|   |_|  \_____\___/|_| |_|_| |_|\___|\___|\__|    |_|
-                                           
+
 # written by The Muffin Men for CSC 132
 # Presented on May 11, 2021
 # Big thank you to Keith Galli for his tutorial on writing the UI with Pygame.
@@ -40,8 +40,9 @@ LABEL_POS = (40, 10)
 TEXT_SIZE = 48
 TEXT_FONT = "monospace"
 
-# The pin the button is connected to.
+# The pins connected to the button and LED
 BUTTON_PIN = 12
+LED_PIN = 23
 # How many milliseconds to wait in-between GPIO checks.
 GPIO_CHECK_DELAY = 10
 
@@ -167,7 +168,7 @@ def exit_all():
 def draw_board(board):
     # We need to flip the board to make x=0,y=0 the bottom-right.
     board = np.flip(board, 0)
-    
+
     for c in range(COLUMN_COUNT):
         for r in range(ROW_COUNT):
             # Pygame's draw.rect() func needs a rectangle as its third argument.
@@ -177,7 +178,7 @@ def draw_board(board):
             # want.
             rect = (c*SQUARE_SIZE, (r+1)*SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
             pygame.draw.rect(screen, BLUE, rect)
-            
+
             # Pygame's circles need a position and a radius.
             circle_position = ((c*SQUARE_SIZE) + (SQUARE_SIZE // 2), ((r+1)*SQUARE_SIZE) + (SQUARE_SIZE // 2))
             # We default to a black circle - no piece. If there is actually a
@@ -187,7 +188,7 @@ def draw_board(board):
                 circle_color = RED
             elif board[r][c] == PLAYER_2_PIECE:
                 circle_color = YELLOW
-                
+
             pygame.draw.circle(screen, circle_color, circle_position, CIRCLE_RADIUS)
 
     # This needs to be called to actually change what is shown on the screen.
@@ -226,10 +227,10 @@ def init_networking(server_ip, port):
         return None
     print("Connected to server, response: ", end='')
     print(get_next_data(server_sock))
-    
+
     global socket_connected
     socket_connected = True
-    
+
 # Set up all the GPIO stuff. Lots of things that don't need changing here.
 def setupGPIO():
     # Set pin mode
@@ -237,6 +238,9 @@ def setupGPIO():
 
     # Set up our one input pin.
     GPIO.setup(BUTTON_PIN, GPIO.IN)
+
+    # Set up our one LED pin.
+    GPIO.setup(LED_PIN, GPIO.OUT)
 
 # Is the GPIO button being pressed right now?
 def read_button():
@@ -322,7 +326,7 @@ def wait_for_event(millis_to_wait):
     else:
         pygame.time.wait(millis_to_wait)
     return important_event_happened()
-    
+
 
 def play_game():
 
@@ -348,7 +352,7 @@ def play_game():
     # Start the server connection if needed.
     if not socket_connected:
         init_networking(SERVER_IP, PORT)
-    
+
     while not game_over:
 
         # Draw the board as it currently is.
@@ -375,13 +379,20 @@ def play_game():
                         show_game_start_text()
                         break
                     no_opponent_text(seconds_waited)
-                    
+
             # If the initial response is "start", then the other player has
             # already connected.
             elif response == "start":
                 print("Opponent found! Starting game.")
                 game_started = True
                 show_game_start_text()
+
+        # If we get to turn 43, then the game is a tie. Tell the user this,
+        # and then break.
+        if turn == 43:
+            show_text("  Tie!", MY_COLOR)
+            game_over = True
+            break
 
         # If we get here, the other player has connected.
 
@@ -392,7 +403,7 @@ def play_game():
             # Clear any events from the queue. This is done so that we don't
             # count clicks made while the other player was playing.
             pygame.event.clear()
-            
+
             # How long should we wait before changing the position of the piece? (ms)
             # This time starts off at 500ms, then goes down by 25ms for each
             # turn until it reaches 100ms. It then stays there fore the rest
@@ -401,12 +412,16 @@ def play_game():
                 position_change_delay = 500 - (25 * (turn - 1))
             else:
                 position_change_delay = 100
-            
+
             is_our_turn = True
             while is_our_turn:
 
                 # Remove the previous piece's circle on the screen.
                 draw_top_row()
+
+                # Turn on the LED if we're in kiosk mode.
+                if KIOSK_MODE:
+                    GPIO.output(LED_PIN, GPIO.HIGH)
 
                 # Determine the piece's position and draw it.
                 circle_pos = ((piece_col * SQUARE_SIZE) + (SQUARE_SIZE // 2), SQUARE_SIZE // 2)
@@ -420,15 +435,17 @@ def play_game():
                     # Looks like the user clicked the mouse or the big red
                     # button! See if we can execute that move.
                     if is_valid_location(board, piece_col):
-                        
+
                         # Valid move! Send the turn to the server.
                         while True:
                             send_data("turn {}:{}".format(turn, piece_col))
                             if get_next_data(server_sock) == "affirm":
+                                print("Turn {}:{} received by server.".format(turn, piece_col))
+                                if KIOSK_MODE:
+                                    GPIO.output(LED_PIN, GPIO.LOW)
                                 break
-                            print("Turn {}:{} received by server.".format(turn, piece_col))
-                        
-                        
+
+
                         # Place the piece.
                         row = get_next_open_row(board, piece_col)
                         drop_piece(board, row, piece_col, MY_PIECE)
@@ -485,10 +502,12 @@ def play_game():
             # Increment the turn counter.
             turn += 1
 
+
+
     # Looks like the game just ended!
     # Let's wait a few seconds to let this sink in.
     pygame.time.wait(5000)
-    
+
 
 #
 #
