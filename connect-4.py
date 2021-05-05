@@ -208,11 +208,11 @@ def important_event_happened():
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_q:
                 exit_all()
+            if event.key == pygame.K_SPACE:
+                return True
 
         # If the user clicked the mouse or button, return true.
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            return True
-        elif event.key == pygame.K_SPACE:
             return True
 
     # We didn't find anything worth writing home about. Return False.
@@ -359,6 +359,9 @@ def play_game():
 
         # Draw the board as it currently is.
         draw_board(board)
+
+        # Clear the Pygame events.
+        pygame.event.clear()
 
         if not game_started:
             # send the server our piece
