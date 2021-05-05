@@ -67,6 +67,14 @@ def threaded_client(connection):
             else:
                 reply = "wait"
 
+        elif data == "gameover":
+            # The game is over. Set the status of both players to disconnected,
+            # and clear the movelist.
+            p1_connected = False
+            p2_connected = False
+            init_move_list()
+            reply == "affirm"
+
         elif data.startswith("turn"):
             # This is turn data. Very important.
             # Format of turn data: "turn x:y" where x=turn and y=column
