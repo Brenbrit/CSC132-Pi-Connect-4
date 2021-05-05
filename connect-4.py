@@ -469,8 +469,6 @@ def play_game():
                             show_text("Player {} wins!".format(MY_PIECE), MY_COLOR)
                             game_over = True
 
-                            # Tell the server to reset.
-                            send_data("reset")
 
                 # If we get here, nothing interesting happened since we started
                 # wait()ing. Move the piece to the next column.
