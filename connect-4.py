@@ -212,6 +212,8 @@ def important_event_happened():
         # If the user clicked the mouse or button, return true.
         elif event.type == pygame.MOUSEBUTTONDOWN:
             return True
+        elif event.type == pygame.K_SPACE:
+            return True
 
     # We didn't find anything worth writing home about. Return False.
     return False
@@ -390,7 +392,7 @@ def play_game():
         # If we get to turn 43, then the game is a tie. Tell the user this,
         # and then break.
         if turn == 43:
-            show_text("  Tie!", MY_COLOR)
+            show_text("    Tie!", MY_COLOR)
             game_over = True
             break
 
