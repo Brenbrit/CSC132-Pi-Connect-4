@@ -496,6 +496,7 @@ def play_game():
             opp_move = get_move(turn)
             row = get_next_open_row(board, opp_move)
             drop_piece(board, row, opp_move, OPP_PIECE)
+            draw_board(board)
             pygame.display.update()
 
             # Check if the other player has just won.
