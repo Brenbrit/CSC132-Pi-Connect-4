@@ -257,12 +257,15 @@ def send_data(data):
 # yet, then wait a second and try again.
 def get_move(turn_num):
     print("Waiting for opponent to move ", end='')
+    seconds_waited = 0
     response = ''
     while True:
         send_data("waiting {}".format(turn_num))
         response = get_next_data(server_sock)
         if response == "wait":
+            waiting_move_text(seconds_waited)
             time.sleep(1)
+            seconds_waited += 1
             print('.', end='')
         elif len(response) == 1:
             break
@@ -283,7 +286,11 @@ def show_text(text, color):
 # Function which shows some text at the top of the screen to indicate that the
 # other player has not yet connected.
 def no_opponent_text(seconds_waited):
-    show_text("Matching" + "." * (seconds_waited % 4), MY_COLOR)
+    show_text(" Matching " + "." * (seconds_waited % 4), MY_COLOR)
+
+# Function which makes the Opponent playing... text
+def waiting_move_text(seconds_waited):
+    show_text(" Waiting " + "." * (seconds_waited % 4), MY_COLOR)
 
 # Show text at the top of the screen to indicate that the game is starting.
 # The one argument indicates the amount of time to wait with this text at the top.
@@ -301,7 +308,7 @@ def show_game_start_text():
 # Show text at the beginning of the game before the server connection
 # is established.
 def show_startup_text():
-    show_text("Connect 4", MY_COLOR)
+    show_text(" Connect 4", MY_COLOR)
 
 # Wait a maximum time for some interesting event (mouse click, button press).
 def wait_for_event(millis_to_wait):
