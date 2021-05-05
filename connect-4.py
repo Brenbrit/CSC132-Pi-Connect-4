@@ -504,6 +504,11 @@ def play_game():
                 # They did! gg!
                 show_text("Player {} wins!".format(OPP_PIECE), OPP_COLOR)
                 game_over = True
+                # Tell the server that the game is over.
+                while True:
+                    send_data("gameover")
+                    if get_next_data(server_sock) == "affirm":
+                        break
 
             # Increment the turn counter.
             turn += 1
