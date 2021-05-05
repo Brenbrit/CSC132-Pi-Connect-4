@@ -212,7 +212,7 @@ def important_event_happened():
         # If the user clicked the mouse or button, return true.
         elif event.type == pygame.MOUSEBUTTONDOWN:
             return True
-        elif event.type == pygame.K_SPACE:
+        elif event.key == pygame.K_SPACE:
             return True
 
     # We didn't find anything worth writing home about. Return False.
