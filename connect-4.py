@@ -313,8 +313,19 @@ def show_game_start_text():
 
 # Show text at the beginning of the game before the server connection
 # is established.
-def show_startup_text():
-    show_text(" Connect 4", MY_COLOR)
+def show_startup_screen():
+    show_text("Press to play!", MY_COLOR)
+    while True:
+        if KIOSK_MODE:
+            GPIO.output(LED_PIN, GPIO.HIGH)
+        if wait_for_event(500):
+            break
+        if KIOSK_MODE:
+            GPIO.output(LED_PIN, GPIO.LOW)
+        if wait_for_event(500):
+            break
+    if KIOSK_MODE:
+        GPIO.output(LED_PIN, GPIO.LOW)
 
 # Wait a maximum time for some interesting event (mouse click, button press).
 def wait_for_event(millis_to_wait):
@@ -333,8 +344,9 @@ def wait_for_event(millis_to_wait):
 def play_game():
 
     # Game variables!
-    # The board. A numpy matrix.
-    board = create_board()
+
+    # the game board
+    global board
     # The game's state. The game is not over by default, and the game has not
     # started by default.
     game_over = False
@@ -347,8 +359,12 @@ def play_game():
     # Is the piece moving right or left? 1 for right, -1 for left.
     piece_direction = 1
 
+    # Show the board on the screen.
     draw_board(board)
-    show_startup_text()
+    # Wait for a button press before starting.
+    show_startup_screen()
+    # The board. A numpy matrix.
+    board = create_board()
     pygame.display.update()
 
     # Start the server connection if needed.
@@ -504,6 +520,7 @@ def play_game():
                 game_over = True
                 # Tell the server that the game is over.
                 while True:
+                    print("Telling the server that the game is over.")
                     send_data("gameover")
                     if get_next_data(server_sock) == "affirm":
                         break
@@ -552,6 +569,8 @@ if KIOSK_MODE:
 # boilerplate to us. We don't need to change them.
 server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 socket_connected = False
+
+board = create_board()
 
 while True:
 
