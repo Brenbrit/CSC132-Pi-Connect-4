@@ -41,7 +41,7 @@ TEXT_SIZE = 48
 TEXT_FONT = "monospace"
 
 # The pins connected to the button and LED
-BUTTON_PIN = 12
+BUTTON_PIN = 24
 LED_PIN = 23
 # How many milliseconds to wait in-between GPIO checks.
 GPIO_CHECK_DELAY = 10
