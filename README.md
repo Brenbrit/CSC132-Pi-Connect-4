@@ -1,8 +1,12 @@
 # pi-connect-4
 -=Group Members=-
+
 Brendan Guillory
+
 Austin Hampton
+
 Chris Clent
+
 Zak Kilpatrick
 
 
