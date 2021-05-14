@@ -1,4 +1,10 @@
 # pi-connect-4
+-=Group Members=-
+Brendon Guillary
+Austin Hampton
+Chris
+Zak Kilpatrick
+
 
 -=Numpy and Pygame are required for this project=-
 
